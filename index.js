@@ -6,8 +6,8 @@ const ms = require('ms')
 const mkdirp = require('mkdirp')
 const dateFormat = require('dateformat')
 
-async function takeScreenshot(page, url) {
-  await page.goto(url, { waitUntil: 'networkidle2' })
+async function takeScreenshot(page, url, waitUntil = 'networkidle2') {
+  await page.goto(url, { waitUntil })
   return page.screenshot()
 }
 
@@ -17,7 +17,7 @@ async function addScreenshot(page, argv) {
     mkdirp.sync(argv.directory)
 
     // Get screenshot as a buffer but don't write to disk yet
-    const screenshotBuffer = await takeScreenshot(page, argv._[0])
+    const screenshotBuffer = await takeScreenshot(page, argv._[0], argv.until)
 
     // Read screenshots directory
     const recentFiles = fs.readdirSync(argv.directory).reverse()
@@ -30,6 +30,7 @@ async function addScreenshot(page, argv) {
 
     // Check if the last file is the same as the screenshot buffer
     if (
+      !argv.duplicate &&
       lastFile &&
       fs
         // Get full path as readdir just returns file names, not full path
